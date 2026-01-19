@@ -1,4 +1,4 @@
-# ANPR Website
+# ANPR Website ![Python](https://img.shields.io/badge/python-3.13-blue) ![JavaScript](https://img.shields.io/badge/javascript-ES6-f7df1e)
 
 This project uses a **Python Flask backend** to handle gathering the vehicle data, with a simple **HTML/CSS/JS Frontend** that allows users to input number plates and view information.
 

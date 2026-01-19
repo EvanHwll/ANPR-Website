@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 app = Flask(__name__)
 CORS(app)
 
-reader = easyocr.Reader(['en'], verbose=False)
+reader = None
 
 API_KEY = os.environ.get("VEHICLE_DATA_API_KEY")
 
@@ -96,6 +96,10 @@ Takes the base64 string via post.
 '''
 @app.route('/anpr', methods=['POST'])
 def anpr():
+
+    global reader
+    if reader is None:
+        easyocr.Reader(['en'], verbose=False)
 
     # Check image has been provided
     data = request.json
@@ -227,5 +231,5 @@ def calculate_expiry_info( default_str ):
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)

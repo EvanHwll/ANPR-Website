@@ -29,6 +29,12 @@ if not API_KEY:
 
 
 
+
+@app.route("/alive")
+def health():
+    return {"status": "ok"}
+
+
 '''
 Called when the user makes an API request to /entry.
 Takes the plate parameter and sends it to make_api_request().

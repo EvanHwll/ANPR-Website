@@ -8,6 +8,7 @@ import easyocr
 import string
 import os
 import base64
+import threading
 
 from datetime import datetime, timezone
 
@@ -16,8 +17,16 @@ app = Flask(__name__)
 CORS(app)
 
 reader = None
+def init_reader():
+    global reader
+    reader = easyocr.Reader(['en'], verbose=False)
+    print("EasyOCR loaded.")
+threading.Thread(target=init_reader, daemon=True).start()
 
 API_KEY = os.environ.get("VEHICLE_DATA_API_KEY")
+if not API_KEY:
+    raise ValueError("VEHICLE_DATA_API_KEY not set in environment")
+
 
 
 '''
@@ -99,7 +108,7 @@ def anpr():
 
     global reader
     if reader is None:
-        easyocr.Reader(['en'], verbose=False)
+        return jsonify({"error": "OCR still loading, try again in a few seconds"})
 
     # Check image has been provided
     data = request.json

@@ -29,6 +29,7 @@ function display_data(data) {
     show_element(btn_search_again);
     hide_element(btn_toggle_video);
     hide_element(video);
+    hide_element(overlay);
 
     // For MOT
     if (data.mot.valid == true) {

@@ -32,6 +32,7 @@ async function create_api_request_entry(plate) {
 
         if (data.error == undefined) {
             hide_element(video);
+            hide_element(overlay);
             hide_element(btn_toggle_video);
             display_data(data);
         } else {

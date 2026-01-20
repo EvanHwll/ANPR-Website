@@ -6,7 +6,6 @@ const btn_toggle_video = document.getElementById("toggle-video");
 let search_for_plate = true;
 let show_video = true;
 
-// Start camera (full video, no resizing)
 navigator.mediaDevices
     .getUserMedia({ video: { facingMode: { ideal: "environment" } } })
     .then((stream) => {
@@ -25,11 +24,11 @@ function positionOverlay() {
     const rectWidth = 300; // width of capture rectangle
     const rectHeight = 100; // height of capture rectangle
 
-    // Ensure video has loaded dimensions
+    // Get video dimensions
     const videoWidth = video.clientWidth;
     const videoHeight = video.clientHeight;
 
-    // Center rectangle horizontally and vertically
+    // Center rectangle
     overlay.style.width = rectWidth + "px";
     overlay.style.height = rectHeight + "px";
     overlay.style.left = (videoWidth - rectWidth) / 2 + "px";
@@ -39,11 +38,8 @@ function positionOverlay() {
 // Call initially and whenever the window resizes
 positionOverlay();
 window.addEventListener("resize", positionOverlay);
-
-// Optional: reposition overlay when video metadata loads (mobile fix)
 video.addEventListener("loadedmetadata", positionOverlay);
 
-// Canvas size matches rectangle size
 canvas.width = 300;
 canvas.height = 100;
 
@@ -62,24 +58,23 @@ function capture_frame() {
     const rect = overlay.getBoundingClientRect();
     const videoRect = video.getBoundingClientRect();
 
-    // Map overlay rectangle to the video’s intrinsic resolution
     const scaleX = video.videoWidth / videoRect.width;
     const scaleY = video.videoHeight / videoRect.height;
 
-    // Add margin around the rectangle (in pixels, screen coordinates)
-    const margin = 20; // adjust as needed
+    // Add margin around the rectangle to be captured
+    const margin = 20;
     const sx = (rect.left - videoRect.left - margin) * scaleX;
     const sy = (rect.top - videoRect.top - margin) * scaleY;
     const sw = (rect.width + 2 * margin) * scaleX;
     const sh = (rect.height + 2 * margin) * scaleY;
 
-    // Ensure we don't go outside video bounds
+    // Ensure doesn't go outside video bounds
     const sxClamped = Math.max(0, sx);
     const syClamped = Math.max(0, sy);
     const swClamped = Math.min(video.videoWidth - sxClamped, sw);
     const shClamped = Math.min(video.videoHeight - syClamped, sh);
 
-    // Draw the slightly bigger rectangle onto the canvas
+    // Draw the rectangle onto the canvas
     ctx.drawImage(
         video,
         sxClamped,
@@ -100,14 +95,16 @@ function capture_frame() {
 // Capture a frame every second
 setInterval(capture_frame, 1000);
 
-/**
- * Toggle video visibility
- *
- * Shows or hides the video feed and overlay rectangle
- * when the toggle button is clicked.
- */
 btn_toggle_video.addEventListener("click", () => {
     show_video = !show_video;
-    video.style.display = show_video ? "block" : "none";
-    overlay.style.display = show_video ? "block" : "none";
+
+    if (show_video) {
+        show_element(video);
+        show_element(overlay);
+    }
+
+    if (!show_video) {
+        hide_element(video);
+        hide_element(overlay);
+    }
 });

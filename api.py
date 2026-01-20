@@ -10,6 +10,9 @@ import os
 import base64
 import threading
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from datetime import datetime, timezone
 
 
@@ -23,16 +26,15 @@ def init_reader():
     print("EasyOCR loaded.")
 threading.Thread(target=init_reader, daemon=True).start()
 
+
+
+
 API_KEY = os.environ.get("VEHICLE_DATA_API_KEY")
 if not API_KEY:
-    raise ValueError("VEHICLE_DATA_API_KEY not set in environment")
+    raise ValueError("VEHICLE_DATA_API_KEY not set!")
 
 
 
-
-@app.route("/alive")
-def health():
-    return {"status": "ok"}
 
 
 '''
@@ -70,12 +72,15 @@ def make_api_request(plate):
     }
 
     response = requests.get(url, params=params)
+
+    if not response.ok:
+        return {"error":"Sorry, I've reached my maximum daily requests. Try again tommorow!"}
     
     data = response.json()
 
     # If API request was not successful, return it early with error code.
     if data["ResponseInformation"]["IsSuccessStatusCode"] == False:
-        return jsonify({"error":f"Could not find info for {plate}"})
+        return jsonify({"error":f"Could not find any data for {plate}"})
 
 
     # Copy required data into new JSON
@@ -83,24 +88,71 @@ def make_api_request(plate):
         "plate": data["Results"]["MotHistoryDetails"]["Vrm"],
 
         "mot": {
-            "valid": ( data["Results"]["VehicleTaxDetails"]["MotStatus"] == "Valid") ,
+            "valid": "X" ,
             "due_date": "X",
             "days_until_due": "X"
         },
 
         "tax": {
-            "valid": ( data["Results"]["VehicleTaxDetails"]["TaxStatus"] == "Taxed") ,
+            "valid": "X" ,
             "due_date": "X",
             "days_until_due": "X"
         }
     }
 
+    # If there are no details currently stored, it may be a new vehicle.
 
-    # Add in more info about expiry dates.
-    formatted_response["mot"]["due_date"], formatted_response["mot"]["days_until_due"] = calculate_expiry_info( data["Results"]["MotHistoryDetails"]["MotDueDate"])
+    skip_mot_expiry = False
 
-    formatted_response["tax"]["due_date"], formatted_response["tax"]["days_until_due"] = calculate_expiry_info( data["Results"]["VehicleTaxDetails"]["TaxDueDate"])
+    days_since_reg = -calculate_days_until( data["Results"]["MotHistoryDetails"]["FirstUsedDate"] )
+    if days_since_reg > 14600:
+        formatted_response["mot"]["valid"] = "AgeExempt"
+        skip_mot_expiry = True
 
+    elif days_since_reg < 1095:
+        formatted_response["mot"]["valid"] = "NewExempt"
+
+    elif data["Results"]["VehicleTaxDetails"]["MotStatus"] == "Valid":
+        formatted_response["mot"]["valid"] = True
+    
+    elif data["Results"]["VehicleTaxDetails"]["MotStatus"] == "Not valid":
+        formatted_response["mot"]["valid"] = False
+
+    else:
+        formatted_response["mot"]["valid"] = "Unknown"
+        skip_mot_expiry = True
+
+
+
+
+    skip_tax_expiry = False
+
+    days_since_reg = -calculate_days_until( data["Results"]["MotHistoryDetails"]["FirstUsedDate"] )
+    if days_since_reg > 14600:
+        formatted_response["tax"]["valid"] = "AgeExempt"
+        skip_tax_expiry = True
+
+    elif data["Results"]["VehicleTaxDetails"]["TaxStatus"] == "SORN":
+        formatted_response["tax"]["valid"] = "SornExempt"
+        skip_tax_expiry = True
+    
+    elif data["Results"]["VehicleTaxDetails"]["TaxStatus"] == "Taxed":
+        formatted_response["tax"]["valid"] = True
+
+    elif data["Results"]["VehicleTaxDetails"]["TaxStatus"] == "Untaxed":
+        formatted_response["tax"]["valid"] = False
+
+    else:
+        formatted_response["tax"]["valid"] = "Unknown"
+        skip_tax_expiry = True
+
+
+
+    if not skip_mot_expiry:
+        formatted_response["mot"]["due_date"], formatted_response["mot"]["days_until_due"] = calculate_expiry_info( data["Results"]["MotHistoryDetails"]["MotDueDate"])
+
+    if not skip_tax_expiry:
+        formatted_response["tax"]["due_date"], formatted_response["tax"]["days_until_due"] = calculate_expiry_info( data["Results"]["VehicleTaxDetails"]["TaxDueDate"])
 
     return jsonify(formatted_response)
 
@@ -237,10 +289,22 @@ def calculate_expiry_info( default_str ):
     else:
         due_date = datetime.strptime(default_str, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
 
+    days_until = calculate_days_until( default_str )
+
+    return due_date.strftime("%d/%m/%Y"), days_until
+
+
+def calculate_days_until( default_str ):
+    if default_str.endswith("Z"):
+        due_date = datetime.strptime(default_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    else:
+        due_date = datetime.strptime(default_str, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+
     today = datetime.now(timezone.utc)
     delta = due_date - today
 
-    return due_date.strftime("%d/%m/%Y"), delta.days
+    return delta.days
+
 
 
 

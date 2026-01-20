@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ANPR Project</title>
+        <link rel="stylesheet" href="styles.css" />
+        <style>
+            /* Container for video + overlay */
+            #video-container {
+                position: relative;
+                display: inline-block;
+            }
+
+            /* Overlay rectangle to show capture area */
+            #overlay {
+                position: absolute;
+                border: 3px solid red; /* Visible rectangle */
+                pointer-events: none; /* Allows interaction with video underneath */
+                box-sizing: border-box;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>ANPR Project</h1>
+
+        <form id="form-number-plate">
+            <input
+                id="form-number-plate-input"
+                type="text"
+                name="entered_number_plate"
+            />
+            <button type="submit">Submit</button>
+        </form>
+        <b>Due to API Limitations, Number Plates must contain an A.</b>
+        <button id="get-random-plate">Need one to try?</button>
+
+        <p id="result" class="space-after">Result</p>
+
+        <button id="toggle-video">Toggle Video Detection</button>
+        <br />
+
+        <!-- Video + overlay container -->
+        <div id="video-container" class="space-after">
+            <video
+                id="video"
+                autoplay
+                playsinline
+                style="width: 100%; max-width: 600px"
+            ></video>
+            <div id="overlay"></div>
+        </div>
+
+        <!-- Hidden canvas for capturing the rectangle -->
+        <canvas id="canvas" style="display: none"></canvas>
+
+        <div id="plate-display" class="space-after">AB12 CDE</div>
+        <div class="grid-container space-after">
+            <div class="box" id="info-mot">
+                MOT
+                <p id="info-mot-sub"></p>
+            </div>
+            <div class="box" id="info-tax">
+                Tax
+                <p id="info-tax-sub"></p>
+            </div>
+        </div>
+
+        <button id="search-again" class="space-after">
+            Search Another Plate
+        </button>
+
+        <h3>Dev Settings</h3>
+        <p id="toggle-api-text">Currently Selected: dep</p>
+        <button id="toggle-api-local">Use Localhost API</button>
+        <button id="toggle-api-dep">Use Deployed API</button>
+    </body>
+
+    <!-- Scripts -->
+    <script src="Scripts/Toggle API Dest.js"></script>
+    <script src="Scripts/Show Hide.js"></script>
+    <script src="Scripts/API Request Generator.js"></script>
+    <script src="Scripts/Display Data.js"></script>
+    <script src="Scripts/Form Uploader.js"></script>
+    <script src="Scripts/Webcam Uploader.js"></script>
+    <script src="Scripts/Search Another Plate.js"></script>
+    <script src="Scripts/Give Random Plate.js"></script>
+</html>

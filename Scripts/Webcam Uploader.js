@@ -11,7 +11,9 @@ if (!show_video) {
 }
 
 navigator.mediaDevices
-    .getUserMedia({ video: true })
+    .getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+    })
     .then((stream) => {
         video.srcObject = stream;
     })

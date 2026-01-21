@@ -9,6 +9,7 @@ btn_search_again.addEventListener("click", () => {
     search_for_plate = true;
     if (show_video) {
         show_element(video);
+        show_element(overlay);
     }
     video.play();
 

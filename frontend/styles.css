@@ -44,3 +44,27 @@
 h3 {
     margin-top: 10%;
 }
+
+#video-container {
+    position: relative;
+    display: inline-block;
+}
+
+#overlay {
+    position: absolute;
+    border: 3px solid red;
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+body {
+    font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+    background: #f4f6f8;
+    color: #222;
+}
